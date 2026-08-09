@@ -105,6 +105,49 @@
               <span class="control-label">Microphone</span>
               <meter id="mic-level" min="0" max="1" value="0"></meter>
               <span id="smart-status" class="smart-status">Press Start and play along</span>
+              <details class="smart-debug">
+                <summary>⚙️ Smart scroll calibration + debug</summary>
+                <div class="smart-debug-grid">
+                  <label for="smart-silence">Silence threshold</label>
+                  <input id="smart-silence" type="number" min="0" max="1" step="0.005" />
+                  <label for="smart-score-threshold">Score threshold</label>
+                  <input id="smart-score-threshold" type="number" min="-1" max="1" step="0.01" />
+                  <label for="smart-gate">Confidence gate</label>
+                  <input id="smart-gate" type="number" min="0" max="1" step="0.01" />
+                  <label for="smart-attack">Confidence attack</label>
+                  <input id="smart-attack" type="number" min="0" max="1" step="0.01" />
+                  <label for="smart-decay">Confidence decay</label>
+                  <input id="smart-decay" type="number" min="0" max="1" step="0.01" />
+                  <label for="smart-lookahead">Lookahead (beats)</label>
+                  <input id="smart-lookahead" type="number" min="0.5" max="64" step="0.5" />
+                  <label for="smart-window">Window (beats)</label>
+                  <input id="smart-window" type="number" min="0.25" max="16" step="0.25" />
+                  <label for="smart-step">Max step (beats)</label>
+                  <input id="smart-step" type="number" min="0.25" max="16" step="0.25" />
+                  <label for="smart-penalty">Ahead penalty</label>
+                  <input id="smart-penalty" type="number" min="0" max="1" step="0.005" />
+                  <label for="smart-ahead-step">Scan step (beats)</label>
+                  <input id="smart-ahead-step" type="number" min="0.125" max="4" step="0.125" />
+                  <label for="smart-min-freq">Min freq (Hz)</label>
+                  <input id="smart-min-freq" type="number" min="20" max="5000" step="5" />
+                  <label for="smart-max-freq">Max freq (Hz)</label>
+                  <input id="smart-max-freq" type="number" min="60" max="10000" step="10" />
+                  <label for="smart-level-scale">Meter scale</label>
+                  <input id="smart-level-scale" type="number" min="0.1" max="20" step="0.1" />
+                  <label for="smart-smoothing">FFT smoothing</label>
+                  <input id="smart-smoothing" type="number" min="0" max="0.99" step="0.01" />
+                  <label for="smart-interval">Update interval (ms)</label>
+                  <input id="smart-interval" type="number" min="40" max="1000" step="10" />
+                </div>
+                <div class="smart-debug-readout">
+                  <span>Energy: <strong id="smart-debug-energy">0.000</strong></span>
+                  <span>Level: <strong id="smart-debug-level">0.00</strong></span>
+                  <span>Best score: <strong id="smart-debug-score">0.000</strong></span>
+                  <span>Confidence: <strong id="smart-debug-confidence">0.00</strong></span>
+                  <span>Target beat: <strong id="smart-debug-target">0.00</strong></span>
+                  <span>Tracked beat: <strong id="smart-debug-position">0.00</strong></span>
+                </div>
+              </details>
             </div>
 
             <div class="transport">
