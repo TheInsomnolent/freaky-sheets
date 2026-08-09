@@ -2,7 +2,8 @@ import './style.css'
 import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
 import { DEMO_SONG_XML } from './demo/odeToJoy'
 import { chordChart } from './lib/chords'
-import { SmartListener } from './lib/listener'
+import { DEFAULT_SMART_TUNING, SmartListener } from './lib/listener'
+import type { SmartDebugSnapshot, SmartTuning } from './lib/listener'
 import { loadFile } from './lib/loadFile'
 import { parseMusicXml } from './lib/musicxml'
 import { ScrollController } from './lib/scroll'
@@ -33,7 +34,24 @@ const speedValue = $('#speed-value')
 const durationInput = $<HTMLInputElement>('#duration-input')
 const micLevel = $<HTMLMeterElement>('#mic-level')
 const smartStatus = $('#smart-status')
+const smartDebugEnergy = $('#smart-debug-energy')
+const smartDebugScore = $('#smart-debug-score')
+const smartDebugConfidence = $('#smart-debug-confidence')
+const smartDebugTarget = $('#smart-debug-target')
+const smartDebugPosition = $('#smart-debug-position')
 const playButton = $('#play-button')
+const smartSilence = $<HTMLInputElement>('#smart-silence')
+const smartScoreThreshold = $<HTMLInputElement>('#smart-score-threshold')
+const smartGate = $<HTMLInputElement>('#smart-gate')
+const smartAttack = $<HTMLInputElement>('#smart-attack')
+const smartDecay = $<HTMLInputElement>('#smart-decay')
+const smartLookahead = $<HTMLInputElement>('#smart-lookahead')
+const smartWindow = $<HTMLInputElement>('#smart-window')
+const smartStep = $<HTMLInputElement>('#smart-step')
+const smartPenalty = $<HTMLInputElement>('#smart-penalty')
+const smartMinFreq = $<HTMLInputElement>('#smart-min-freq')
+const smartMaxFreq = $<HTMLInputElement>('#smart-max-freq')
+const smartLevelScale = $<HTMLInputElement>('#smart-level-scale')
 
 const scroller = new ScrollController(scoreContainer)
 const osmd = new OpenSheetMusicDisplay(sheetView, {
@@ -46,6 +64,47 @@ let currentSong: Song | null = null
 let currentView: ViewName = 'sheet'
 let listener: SmartListener | null = null
 let sheetRendered = false
+
+const smartInputs: Record<keyof SmartTuning, HTMLInputElement> = {
+  silenceThreshold: smartSilence,
+  scoreThreshold: smartScoreThreshold,
+  confidenceGate: smartGate,
+  confidenceAttack: smartAttack,
+  confidenceDecay: smartDecay,
+  lookaheadBeats: smartLookahead,
+  windowBeats: smartWindow,
+  maxStepBeats: smartStep,
+  aheadPenalty: smartPenalty,
+  minFreqHz: smartMinFreq,
+  maxFreqHz: smartMaxFreq,
+  levelScale: smartLevelScale,
+  analyserSmoothing: $<HTMLInputElement>('#smart-smoothing'),
+  updateIntervalMs: $<HTMLInputElement>('#smart-interval'),
+  aheadStepBeats: $<HTMLInputElement>('#smart-ahead-step'),
+}
+
+for (const [key, input] of Object.entries(smartInputs) as [keyof SmartTuning, HTMLInputElement][]) {
+  input.value = String(DEFAULT_SMART_TUNING[key])
+}
+
+function smartTuningFromInputs(): Partial<SmartTuning> {
+  const tuning: Partial<SmartTuning> = {}
+  for (const [key, input] of Object.entries(smartInputs) as [keyof SmartTuning, HTMLInputElement][]) {
+    const value = Number(input.value)
+    if (Number.isFinite(value)) tuning[key] = value
+  }
+  return tuning
+}
+
+function updateSmartDebug(snapshot: SmartDebugSnapshot): void {
+  smartDebugEnergy.textContent = snapshot.energy.toFixed(3)
+  smartDebugScore.textContent = Number.isFinite(snapshot.bestScore)
+    ? snapshot.bestScore.toFixed(3)
+    : 'silence'
+  smartDebugConfidence.textContent = snapshot.confidence.toFixed(2)
+  smartDebugTarget.textContent = snapshot.bestBeats.toFixed(2)
+  smartDebugPosition.textContent = snapshot.positionBeats.toFixed(2)
+}
 
 function showError(target: HTMLElement, message: string): void {
   target.textContent = message
@@ -162,11 +221,13 @@ async function startPlaying(): Promise<void> {
   if (scroller.mode === 'smart') {
     if (!currentSong) return
     listener = new SmartListener(currentSong, {
+      tuning: smartTuningFromInputs(),
       onPosition: (beats) => scroller.setSmartPosition(beats),
       onLevel: (level) => {
         micLevel.value = level
         smartStatus.textContent = level > 0.05 ? 'Listening… play on!' : 'Listening for your playing…'
       },
+      onDebug: updateSmartDebug,
       onError: (message) => showError(playerError, message),
     })
     try {
@@ -187,6 +248,11 @@ function stopPlaying(): void {
   listener = null
   micLevel.value = 0
   smartStatus.textContent = 'Press Start and play along'
+  smartDebugEnergy.textContent = '0.000'
+  smartDebugScore.textContent = '0.000'
+  smartDebugConfidence.textContent = '0.00'
+  smartDebugTarget.textContent = '0.00'
+  smartDebugPosition.textContent = '0.00'
   playButton.textContent = '▶ Start'
   playButton.classList.add('primary')
 }
@@ -232,6 +298,12 @@ durationInput.addEventListener('input', () => {
   const value = Number(durationInput.value)
   if (value > 0) scroller.timedDuration = value
 })
+
+for (const input of Object.values(smartInputs)) {
+  input.addEventListener('input', () => {
+    listener?.setTuning(smartTuningFromInputs())
+  })
+}
 
 playButton.addEventListener('click', () => {
   if (scroller.running) stopPlaying()

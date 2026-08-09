@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { expectedPitchClasses, matchScore, spectrumToChroma } from '../src/lib/listener'
+import {
+  DEFAULT_SMART_TUNING,
+  expectedPitchClasses,
+  matchScore,
+  resolveSmartTuning,
+  spectrumToChroma,
+} from '../src/lib/listener'
 import { DEMO_SONG_XML } from '../src/demo/odeToJoy'
 import { parseMusicXml } from '../src/lib/musicxml'
 
@@ -46,5 +52,29 @@ describe('matchScore', () => {
 
   it('scores zero when nothing is expected', () => {
     expect(matchScore(new Array(12).fill(0.1), new Set())).toBe(0)
+  })
+})
+
+describe('resolveSmartTuning', () => {
+  it('fills defaults and applies provided values', () => {
+    const resolved = resolveSmartTuning({ silenceThreshold: 0.12, lookaheadBeats: 12 })
+    expect(resolved.silenceThreshold).toBe(0.12)
+    expect(resolved.lookaheadBeats).toBe(12)
+    expect(resolved.confidenceGate).toBe(DEFAULT_SMART_TUNING.confidenceGate)
+  })
+
+  it('clamps out-of-range values and keeps maxFreq above minFreq', () => {
+    const resolved = resolveSmartTuning({
+      silenceThreshold: -2,
+      confidenceAttack: 4,
+      minFreqHz: 5000,
+      maxFreqHz: 100,
+      aheadStepBeats: 3,
+      lookaheadBeats: 0.5,
+    })
+    expect(resolved.silenceThreshold).toBe(0)
+    expect(resolved.confidenceAttack).toBe(1)
+    expect(resolved.maxFreqHz).toBeGreaterThan(resolved.minFreqHz)
+    expect(resolved.lookaheadBeats).toBeGreaterThanOrEqual(resolved.aheadStepBeats)
   })
 })

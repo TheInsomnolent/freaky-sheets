@@ -22,6 +22,8 @@ along while the page scrolls for you.
     song and follows your playing. It is deliberately forgiving: it matches on
     pitch classes only, so delays, learner mistakes, and partial phrasings
     (like playing a power chord instead of a barre chord) still work.
+    Smart mode also includes an expandable calibration/debug panel so you can
+    tune thresholds/lookahead and watch live matching metrics while testing.
 - **Demo song included** (Beethoven's *Ode to Joy*) so you can try everything
   without uploading anything.
 - **Responsive design** with large touch targets — works on mobile, tablet and
