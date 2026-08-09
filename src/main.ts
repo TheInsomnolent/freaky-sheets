@@ -35,6 +35,7 @@ const durationInput = $<HTMLInputElement>('#duration-input')
 const micLevel = $<HTMLMeterElement>('#mic-level')
 const smartStatus = $('#smart-status')
 const smartDebugEnergy = $('#smart-debug-energy')
+const smartDebugLevel = $('#smart-debug-level')
 const smartDebugScore = $('#smart-debug-score')
 const smartDebugConfidence = $('#smart-debug-confidence')
 const smartDebugTarget = $('#smart-debug-target')
@@ -98,6 +99,7 @@ function smartTuningFromInputs(): Partial<SmartTuning> {
 
 function updateSmartDebug(snapshot: SmartDebugSnapshot): void {
   smartDebugEnergy.textContent = snapshot.energy.toFixed(3)
+  smartDebugLevel.textContent = snapshot.level.toFixed(2)
   smartDebugScore.textContent = Number.isFinite(snapshot.bestScore)
     ? snapshot.bestScore.toFixed(3)
     : 'silence'
@@ -248,11 +250,14 @@ function stopPlaying(): void {
   listener = null
   micLevel.value = 0
   smartStatus.textContent = 'Press Start and play along'
-  smartDebugEnergy.textContent = '0.000'
-  smartDebugScore.textContent = '0.000'
-  smartDebugConfidence.textContent = '0.00'
-  smartDebugTarget.textContent = '0.00'
-  smartDebugPosition.textContent = '0.00'
+  updateSmartDebug({
+    energy: 0,
+    level: 0,
+    bestScore: -Infinity,
+    bestBeats: 0,
+    confidence: 0,
+    positionBeats: 0,
+  })
   playButton.textContent = '▶ Start'
   playButton.classList.add('primary')
 }

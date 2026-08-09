@@ -119,7 +119,7 @@ const tuningBounds: Record<keyof SmartTuning, [number, number]> = {
   lookaheadBeats: [0.5, 64],
   aheadStepBeats: [0.125, 4],
   aheadPenalty: [0, 1],
-  scoreThreshold: [-1, 1],
+  scoreThreshold: [0, 1],
   confidenceAttack: [0, 1],
   confidenceDecay: [0, 1],
   confidenceGate: [0, 1],
@@ -141,8 +141,8 @@ export function resolveSmartTuning(tuning?: Partial<SmartTuning>): SmartTuning {
   if (resolved.maxFreqHz <= resolved.minFreqHz) {
     resolved.maxFreqHz = Math.min(10000, resolved.minFreqHz + 100)
   }
-  if (resolved.lookaheadBeats < resolved.aheadStepBeats) {
-    resolved.lookaheadBeats = resolved.aheadStepBeats
+  if (resolved.lookaheadBeats < resolved.aheadStepBeats * 2) {
+    resolved.lookaheadBeats = resolved.aheadStepBeats * 2
   }
   return resolved
 }
@@ -153,7 +153,8 @@ export class SmartListener {
   private audioContext: AudioContext | null = null
   private analyser: AnalyserNode | null = null
   private stream: MediaStream | null = null
-  private intervalId = 0
+  private intervalId: number | null = null
+  private freqData: Float32Array<ArrayBuffer> | null = null
   private positionBeats = 0
   private confidence = 0
   private tuning: SmartTuning
@@ -165,8 +166,18 @@ export class SmartListener {
   }
 
   setTuning(tuning: Partial<SmartTuning>): void {
+    const previousInterval = this.tuning.updateIntervalMs
     this.tuning = resolveSmartTuning({ ...this.tuning, ...tuning })
     if (this.analyser) this.analyser.smoothingTimeConstant = this.tuning.analyserSmoothing
+    if (
+      this.intervalId !== null &&
+      this.analyser &&
+      this.freqData &&
+      this.tuning.updateIntervalMs !== previousInterval
+    ) {
+      window.clearInterval(this.intervalId)
+      this.scheduleAnalysis()
+    }
   }
 
   async start(): Promise<void> {
@@ -187,17 +198,19 @@ export class SmartListener {
     this.analyser.smoothingTimeConstant = this.tuning.analyserSmoothing
     source.connect(this.analyser)
 
-    const freqData = new Float32Array(this.analyser.frequencyBinCount)
-    this.intervalId = window.setInterval(() => this.analyse(freqData), this.tuning.updateIntervalMs)
+    this.freqData = new Float32Array(this.analyser.frequencyBinCount)
+    this.scheduleAnalysis()
   }
 
   stop(): void {
-    window.clearInterval(this.intervalId)
+    if (this.intervalId !== null) window.clearInterval(this.intervalId)
+    this.intervalId = null
     this.stream?.getTracks().forEach((t) => t.stop())
     this.audioContext?.close().catch(() => {})
     this.audioContext = null
     this.analyser = null
     this.stream = null
+    this.freqData = null
   }
 
   reset(): void {
@@ -271,5 +284,14 @@ export class SmartListener {
       confidence: this.confidence,
       positionBeats: this.positionBeats,
     })
+  }
+
+  private scheduleAnalysis(): void {
+    if (!this.freqData) return
+    const freqData = this.freqData
+    this.intervalId = window.setInterval(
+      () => this.analyse(freqData),
+      this.tuning.updateIntervalMs,
+    )
   }
 }
