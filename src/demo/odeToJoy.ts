@@ -83,11 +83,13 @@ function buildDemoXml(): string {
       openMeasure()
     }
     const step = pitch[0]
+    const sharp = pitch.includes('#')
     const octave = pitch[pitch.length - 1]
     const type = TYPE_FOR_DURATION[dur]
     const dot = dur === 6 ? '<dot/>' : ''
     current +=
-      `<note><pitch><step>${step}</step><octave>${octave}</octave></pitch>` +
+      `<note><pitch><step>${step}</step>${sharp ? '<alter>1</alter>' : ''}` +
+      `<octave>${octave}</octave></pitch>` +
       `<duration>${dur}</duration><type>${type}</type>${dot}</note>`
     filled += dur
   }

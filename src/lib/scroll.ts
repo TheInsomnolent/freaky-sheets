@@ -58,6 +58,9 @@ export class ScrollController {
     cancelAnimationFrame(this.rafId)
   }
 
+  /** Jump back to the top of the song. Does not change the running state:
+   * if the scroller is running it continues from the top, and if it is
+   * paused the caller can resume it with start(). */
   restart(): void {
     this.container.scrollTop = 0
     this.smartBeats = 0

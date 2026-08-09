@@ -5,11 +5,10 @@ import { PITCH_CLASS_NAMES } from './song'
 import type { NoteEvent, Song } from './song'
 
 const SHARP_TO_STEP: Record<string, { step: string; alter: number }> = {}
-for (const [i, name] of PITCH_CLASS_NAMES.entries()) {
+for (const name of PITCH_CLASS_NAMES) {
   SHARP_TO_STEP[name] = name.includes('#')
     ? { step: name[0], alter: 1 }
     : { step: name, alter: 0 }
-  void i
 }
 
 /** Quantize beats to a 16th-note grid to keep the generated notation readable. */
