@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Freaky Sheets - upload sheet music or MIDI and get auto-scrolling sheet music, chord charts and tablature."
+    />
+    <title>Freaky Sheets</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <h1>🎵 Freaky Sheets</h1>
+        <p class="tagline">Sheet music that scrolls for you</p>
+      </header>
+
+      <main>
+        <!-- Landing screen -->
+        <section id="landing" class="landing">
+          <p class="intro">
+            Upload your music and play along while the page scrolls automatically.
+            You can even let it <strong>listen</strong> to your playing and follow you.
+          </p>
+          <div class="landing-actions">
+            <button id="demo-button" class="big-button primary" type="button">
+              ▶ Try the demo song
+            </button>
+            <label class="big-button" for="file-input">
+              📂 Upload your music
+              <input
+                id="file-input"
+                type="file"
+                accept=".musicxml,.xml,.mxl,.mid,.midi"
+                hidden
+              />
+            </label>
+          </div>
+          <p class="hint">
+            Supported files: MusicXML (<code>.musicxml</code>, <code>.xml</code>,
+            <code>.mxl</code>) and MIDI (<code>.mid</code>, <code>.midi</code>).
+            You can also drag &amp; drop a file anywhere on this page.
+          </p>
+          <p id="load-error" class="error" role="alert" hidden></p>
+        </section>
+
+        <!-- Player screen -->
+        <section id="player" class="player" hidden>
+          <div class="toolbar">
+            <h2 id="song-title" class="song-title">Song</h2>
+            <button id="change-song" class="small-button" type="button">
+              ← Choose another song
+            </button>
+          </div>
+
+          <div class="view-tabs" role="tablist" aria-label="How to display the music">
+            <button class="tab active" type="button" role="tab" data-view="sheet" aria-selected="true">
+              🎼 Sheet music
+            </button>
+            <button class="tab" type="button" role="tab" data-view="chords" aria-selected="false">
+              🎸 Chords
+            </button>
+            <button class="tab" type="button" role="tab" data-view="tab" aria-selected="false">
+              📋 Tablature
+            </button>
+          </div>
+
+          <div id="score-container" class="score-container" tabindex="0">
+            <div id="sheet-view" class="view"></div>
+            <div id="chords-view" class="view" hidden></div>
+            <pre id="tab-view" class="view tab-text" hidden></pre>
+          </div>
+
+          <div class="controls">
+            <div class="mode-row">
+              <span class="control-label">Scrolling:</span>
+              <div class="mode-buttons" role="radiogroup" aria-label="Scroll mode">
+                <button class="mode active" type="button" data-mode="manual" aria-pressed="true">
+                  🎚 Speed slider
+                </button>
+                <button class="mode" type="button" data-mode="timed" aria-pressed="false">
+                  ⏱ Song length
+                </button>
+                <button class="mode" type="button" data-mode="smart" aria-pressed="false">
+                  🎤 Listen to me
+                </button>
+              </div>
+            </div>
+
+            <div id="manual-controls" class="mode-options">
+              <label for="speed-slider" class="control-label">Speed</label>
+              <input id="speed-slider" type="range" min="5" max="150" step="5" value="30" />
+              <output id="speed-value" for="speed-slider">30 px/s</output>
+            </div>
+
+            <div id="timed-controls" class="mode-options" hidden>
+              <label for="duration-input" class="control-label">Song length</label>
+              <input id="duration-input" type="number" min="10" max="3600" step="5" value="120" />
+              <span>seconds</span>
+            </div>
+
+            <div id="smart-controls" class="mode-options" hidden>
+              <span class="control-label">Microphone</span>
+              <meter id="mic-level" min="0" max="1" value="0"></meter>
+              <span id="smart-status" class="smart-status">Press Start and play along</span>
+            </div>
+
+            <div class="transport">
+              <button id="play-button" class="big-button primary" type="button">▶ Start</button>
+              <button id="restart-button" class="big-button" type="button">⏮ Back to top</button>
+            </div>
+            <p id="player-error" class="error" role="alert" hidden></p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <p>Free and open source. Your music never leaves your device.</p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
